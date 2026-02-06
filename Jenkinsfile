@@ -1,11 +1,16 @@
 pipeline {
     agent any
 
+    environment {
+        AWS_REGION = "ap-south-1"
+        ECR_REPO = "<408676698146.dkr.ecr.ap-south-1.amazonaws.com/demo-app>"
+        IMAGE_TAG = "1.0.${BUILD_NUMBER}"
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/awsdevopspractice677/aws-devops-e2e-clean-project.git'
+                checkout scm
             }
         }
 
@@ -20,8 +25,26 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 dir('app/demo-app') {
-                    sh 'docker build -t demo-app:1.0 .'
+                    sh 'docker build -t demo-app:${IMAGE_TAG} .'
                 }
+            }
+        }
+
+        stage('Login to ECR') {
+            steps {
+                sh '''
+                aws ecr get-login-password --region $AWS_REGION |
+                docker login --username AWS --password-stdin $ECR_REPO
+                '''
+            }
+        }
+
+        stage('Tag & Push Image') {
+            steps {
+                sh '''
+                docker tag demo-app:${IMAGE_TAG} $ECR_REPO:${IMAGE_TAG}
+                docker push $ECR_REPO:${IMAGE_TAG}
+                '''
             }
         }
     }
