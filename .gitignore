@@ -1,13 +1,7 @@
-
 # Terraform
 **/.terraform/*
 *.tfstate
 *.tfstate.*
-.terraform.lock.hcl
+crash.log
 
-# Build
-target/
 
-# OS
-.DS_Store
-Thumbs.db
